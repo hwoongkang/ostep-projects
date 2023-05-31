@@ -44,6 +44,7 @@ impl Wish {
 
         let reader = BufReader::new(file);
 
+        // https://stackoverflow.com/questions/45882329/read-large-files-line-by-line-in-rust
         for line in reader.lines() {
             let Ok(line) = line else {
                 println!("wish: cannot read file {}", file_name);
