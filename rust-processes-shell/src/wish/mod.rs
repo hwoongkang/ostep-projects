@@ -1,6 +1,7 @@
 pub struct Wish;
 
-use std::io::{self, Write};
+use std::fs::File;
+use std::io::{self, prelude::*, BufReader, Write};
 
 enum ExecutionResult {
     Continue(u8),
@@ -32,6 +33,35 @@ impl Wish {
                 }
             }
         }
+    }
+
+    pub fn run_with_file(&self, file_name: &str) -> u8 {
+        let file = File::open(file_name);
+        let Ok(file) = file else {
+            println!("wish: cannot open file {}", file_name);
+            return 1;
+        };
+
+        let reader = BufReader::new(file);
+
+        for line in reader.lines() {
+            let Ok(line) = line else {
+                println!("wish: cannot read file {}", file_name);
+                return 1;
+            };
+            match self.execute_line(&line) {
+                ExecutionResult::Exit => return 0,
+                ExecutionResult::Continue(code) => {
+                    if code != 0 {
+                        println!("wish: command failed with exit code {}", code);
+                        return code;
+                    } else {
+                        continue;
+                    }
+                }
+            }
+        }
+        0
     }
 
     fn execute_line(&self, cmd: &str) -> ExecutionResult {
